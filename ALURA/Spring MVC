@@ -1,0 +1,61 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/topics")
+public class TopicController {
+
+    @Autowired
+    private TopicRepository topicRepository;
+
+    // Endpoint para criar um novo tópico
+    @PostMapping
+    public ResponseEntity<Topic> createTopic(@RequestBody Topic topic) {
+        Topic savedTopic = topicRepository.save(topic);
+        return new ResponseEntity<>(savedTopic, HttpStatus.CREATED);
+    }
+
+    // Endpoint para mostrar todos os tópicos
+    @GetMapping
+    public ResponseEntity<List<Topic>> getAllTopics() {
+        List<Topic> topics = topicRepository.findAll();
+        return new ResponseEntity<>(topics, HttpStatus.OK);
+    }
+
+    // Endpoint para mostrar um tópico específico pelo ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Topic> getTopicById(@PathVariable Long id) {
+        Optional<Topic> topic = topicRepository.findById(id);
+        return topic.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    // Endpoint para atualizar um tópico existente
+    @PutMapping("/{id}")
+    public ResponseEntity<Topic> updateTopic(@PathVariable Long id, @RequestBody Topic updatedTopic) {
+        Optional<Topic> optionalTopic = topicRepository.findById(id);
+        if (optionalTopic.isPresent()) {
+            updatedTopic.setId(id);
+            Topic savedTopic = topicRepository.save(updatedTopic);
+            return ResponseEntity.ok(savedTopic);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Endpoint para eliminar um tópico pelo ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTopic(@PathVariable Long id) {
+        Optional<Topic> topic = topicRepository.findById(id);
+        if (topic.isPresent()) {
+            topicRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}
